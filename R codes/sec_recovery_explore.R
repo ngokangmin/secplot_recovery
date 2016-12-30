@@ -104,11 +104,30 @@ nrow(subset(sec3, quadrat %in% campau.quad & dbh>=300))/17*25
 source("/Users/nkmstar/Dropbox/secplot_recovery/R codes/load_species.R")
 source("/Users/KangMin/Dropbox/secplot_recovery/R codes/load_species.R")
 
+# plot dimensions 
+
+png("/Users/nkmstar/Desktop/CAMPAU.png", width=299, height=550)
 par(xaxs="i", yaxs="i")
 plot(campau.1$gx, campau.1$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=campau.1$dbh/100, asp=1, main= expression(italic("Campnosperma auriculata")))
 points(campau.2$gx, campau.2$gy, cex=campau.2$dbh/150, asp=1, pch=16, col="red")
 points(campau.3$gx, campau.3$gy, cex=campau.3$dbh/200, asp=1, pch=16, col="blue")
-legend(x=-10, y=70, legend=c("2004", "2008", "2012"), pch=c(1,16,16), bty="n", col=c("black", "red", "blue"), y.intersp = 0.5)
+legend(x=0, y=70, legend=c("2004", "2008", "2012"), pch=c(1,16,16), bty="n", col=c("black", "red", "blue"), y.intersp = 0.7)
+dev.off()
+
+## for making gif
+png("/Users/nkmstar/Desktop/CAMPAU_2004.png", width=299, height=550)
+par(xaxs="i", yaxs="i")
+plot(campau.1$gx, campau.1$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=campau.1$dbh/100, asp=1, main="2004")
+dev.off()
+png("/Users/nkmstar/Desktop/CAMPAU_2008.png", width=299, height=550)
+par(xaxs="i", yaxs="i")
+plot(campau.2$gx, campau.2$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=campau.2$dbh/100, asp=1, main="2008")
+dev.off()
+png("/Users/nkmstar/Desktop/CAMPAU_2012.png", width=299, height=550)
+par(xaxs="i", yaxs="i")
+plot(campau.3$gx, campau.3$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=campau.3$dbh/100, asp=1, main="2012")
+dev.off()
+## gif end
 
 par(xaxs="i", yaxs="i")
 plot(dillsu.1$gx, dillsu.1$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=dillsu.1$dbh/100, asp=1, main= expression(italic("Dillenia suffruticosa")))
@@ -116,11 +135,41 @@ points(dillsu.2$gx, dillsu.2$gy, cex=dillsu.2$dbh/150, asp=1, pch=16, col="red")
 points(dillsu.3$gx, dillsu.3$gy, cex=dillsu.3$dbh/200, asp=1, pch=16, col="blue")
 legend(x=-10, y=70, legend=c("2004", "2008", "2012"), pch=c(1,16,16), bty="n", col=c("black", "red", "blue"), y.intersp = 0.5)
 
+# for making gif
+png("/Users/nkmstar/Desktop/DILLSU_2004.png", width=299, height=550)
+par(xaxs="i", yaxs="i")
+plot(dillsu.1$gx, dillsu.1$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=dillsu.1$dbh/100, asp=1, main="2004")
+dev.off()
+png("/Users/nkmstar/Desktop/DILLSU_2008.png", width=299, height=550)
+par(xaxs="i", yaxs="i")
+plot(dillsu.2$gx, dillsu.2$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=dillsu.2$dbh/100, asp=1, main="2008")
+dev.off()
+png("/Users/nkmstar/Desktop/DILLSU_2012.png", width=299, height=550)
+par(xaxs="i", yaxs="i")
+plot(dillsu.3$gx, dillsu.3$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=dillsu.3$dbh/100, asp=1, main="2012")
+dev.off()
+# gif end
+
 par(xaxs="i", yaxs="i")
 plot(adindu.1$gx, adindu.1$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=adindu.1$dbh/100, asp=1, main= expression(italic("Adinandra dumosa")))
 points(adindu.2$gx, adindu.2$gy, cex=adindu.2$dbh/150, asp=1, pch=16, col="red")
 points(adindu.3$gx, adindu.3$gy, cex=adindu.3$dbh/200, asp=1, pch=16, col="blue")
 legend(x=-10, y=70, legend=c("2004", "2008", "2012"), pch=c(1,16,16), bty="n", col=c("black", "red", "blue"), y.intersp = 0.5)
+
+# for making gif
+png("/Users/nkmstar/Desktop/ADINDU_2004.png", width=299, height=550)
+par(xaxs="i", yaxs="i")
+plot(adindu.1$gx, adindu.1$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=adindu.1$dbh/100, asp=1, main="2004")
+dev.off()
+png("/Users/nkmstar/Desktop/ADINDU_2008.png", width=299, height=550)
+par(xaxs="i", yaxs="i")
+plot(adindu.2$gx, adindu.2$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=adindu.2$dbh/100, asp=1, main="2008")
+dev.off()
+png("/Users/nkmstar/Desktop/ADINDU_2012.png", width=299, height=550)
+par(xaxs="i", yaxs="i")
+plot(adindu.3$gx, adindu.3$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=adindu.3$dbh/100, asp=1, main="2012")
+dev.off()
+# gif end
 
 par(xaxs="i", yaxs="i")
 plot(streel.1$gx, streel.1$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=streel.1$dbh/100, asp=1, main= expression(italic("Streblus elongatus")))
@@ -156,6 +205,12 @@ par(xaxs="i", yaxs="i")
 plot(macaba.1$gx, macaba.1$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=macaba.1$dbh/100, asp=1, main= expression(italic("Macaranga bancana")))
 points(macaba.2$gx, macaba.2$gy, cex=macaba.2$dbh/150, asp=1, pch=16, col="red")
 points(macaba.3$gx, macaba.3$gy, cex=macaba.3$dbh/200, asp=1, pch=16, col="blue")
+legend(x=-10, y=70, legend=c("2004", "2008", "2012"), pch=c(1,16,16), bty="n", col=c("black", "red", "blue"), y.intersp = 0.5)
+
+par(xaxs="i", yaxs="i")
+plot(artoda.1$gx, artoda.1$gy, xlim=c(0,100), ylim=c(0,200), xlab="", ylab="", cex=artoda.1$dbh/100, asp=1, main= expression(italic("Artocarpus dadah")))
+points(artoda.2$gx, artoda.2$gy, cex=artoda.2$dbh/150, asp=1, pch=16, col="red")
+points(artoda.3$gx, artoda.3$gy, cex=artoda.3$dbh/200, asp=1, pch=16, col="blue")
 legend(x=-10, y=70, legend=c("2004", "2008", "2012"), pch=c(1,16,16), bty="n", col=c("black", "red", "blue"), y.intersp = 0.5)
 
 plot(x=1:3, y=c(nrow(campau.1), nrow(campau.2), nrow(campau.3)), type="l", xlab="", ylab="No. individuals")
