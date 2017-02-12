@@ -18,6 +18,10 @@ sec1.ori[is.na(sec1.ori$date),]$ExactDate <- "2014-08-27"
 sec1.ori[is.na(sec1.ori$date),]$date <- 16310 # one date in census 1 is NA
 # 1 missing tree in census 2, carried over to census 3, 8 more missing trees in census 3
 
+sec1[duplicated(sec1$tag) == T] # no duplicated tags
+sec2[duplicated(sec2$tag) == T]
+sec3[duplicated(sec3$tag) == T]
+
 # remove quadrats K1, K2, K3, N1, O1, P1, L2, M2, N2, O2 # same as Siew Chin's manuscript
 exclude <- c("K1", "K2", "K3", "N1", "O1", "P1", "L2", "M2", "N2", "O2")
 sec1 <- subset(sec1.ori, !(quadrat %in% exclude))
@@ -46,19 +50,32 @@ sec3$gy[sec3$tag=="O3-11010"] <- sec3$gy[sec3$tag=="O3-11010"] - 0.1 # gy change
 sec1$gx[sec1$tag=="P2-13119"] <- sec1$gx[sec1$tag=="P2-13119"] - 0.1
 sec2$gx[sec2$tag=="P2-13119"] <- sec2$gx[sec2$tag=="P2-13119"] - 0.1
 sec3$gx[sec3$tag=="P2-13119"] <- sec3$gx[sec3$tag=="P2-13119"] - 0.1
+# LITSMA changed to LITSAC because they are the same
+sec1[sec1$sp=="LITSMA",]$sp <- "LITSAC"
+sec2[sec2$sp=="LITSMA",]$sp <- "LITSAC"
+sec3[sec3$sp=="LITSMA",]$sp <- "LITSAC"
+# ARCHCL merge with ARCHMI, all individuals to take code ARCHMI. ARCHCL has incorrect spelling of species name. 
+sec1[sec1$sp=="ARCHCL",]$sp <- "ARCHMI"
+sec2[sec2$sp=="ARCHCL",]$sp <- "ARCHMI"
+sec3[sec3$sp=="ARCHCL",]$sp <- "ARCHMI"
 # corrections end
 
 # add basal area column in m^2
 sec1$ba <- pi*(sec1$dbh/ 1000 / 2)^2
 sec2$ba <- pi*(sec2$dbh/ 1000 / 2)^2
 sec3$ba <- pi*(sec3$dbh/ 1000 / 2)^2
+# add species classification, sourced from Tree Flora of Malaya, Wayside Trees of Malaya, Flora Malesiana, Plants of Southeast Asia website
+sp_class <- read.csv("/Users/nkmstar/Dropbox/secplot_recovery/R codes/sp_abundance_table.csv")
+sec1$sp_class <- sp_class[match(sec1$sp, sp_class$sp),]$class
+sec2$sp_class <- sp_class[match(sec2$sp, sp_class$sp),]$class
+sec3$sp_class <- sp_class[match(sec3$sp, sp_class$sp),]$class
 # trees alive
 sec1.alive <- subset(sec1, status == "A")
 sec2.alive <- subset(sec2, status == "A")
 sec3.alive <- subset(sec3, status == "A")
-sec1.alive$size <- cut(sec1.alive$dbh, c(10,20,100,10000), include.lowest = T, right = F)
-sec2.alive$size <- cut(sec2.alive$dbh, c(10,20,100,10000), include.lowest = T, right = F)
-sec3.alive$size <- cut(sec3.alive$dbh, c(10,20,100,10000), include.lowest = T, right = F)
+sec1.alive$size <- cut(sec1.alive$dbh, c(10,50,100,10000), include.lowest = T, right = F)
+sec2.alive$size <- cut(sec2.alive$dbh, c(10,50,100,10000), include.lowest = T, right = F)
+sec3.alive$size <- cut(sec3.alive$dbh, c(10,50,100,10000), include.lowest = T, right = F)
 sec2.surv <- subset(sec2, status=="A" & tag %in% subset(sec1, status=="A")$tag) # survivors from census 1
 sec3.surv <- subset(sec3, status=="A" & tag %in% subset(sec1, status=="A")$tag) # survivors from census 1
 
@@ -66,6 +83,34 @@ sec3.surv <- subset(sec3, status=="A" & tag %in% subset(sec1, status=="A")$tag) 
 # so that it's easy to create an abundance table for each species and each census
 sec.alive <- rbind(sec1.alive, sec2.alive, sec3.alive)
 sec.alive$quadrat.census <- c(paste(sec1.alive$quadrat, 1, sep = "."), paste(sec2.alive$quadrat, 2, sep = "."), paste(sec3.alive$quadrat, 3, sep = "."))
+
+
+
+# check Siew Chin's files
+sc_sec <- read.delim("/Users/nkmstar/Dropbox/secplot_recovery/R codes/s1_1.txt")
+sc_sec <- read.delim("/Users/KangMin/Dropbox/secplot_recovery/R codes/s1_1.txt")
+sc_sec <- droplevels(subset(sc_sec, !(quadrat %in% exclude)))
+nrow(subset(sc_sec, status=="A"))
+nrow(subset(sc_sec, status=="A"))/40*25 # this is close to what I got
+nrow(sec1.alive)/40*25
+nrow(sc_sec)/40*25
+table(subset(sc_sec, status=="A")$quadrat)
+table(droplevels(subset(sc_sec, status=="A"))$sp) # only MACAHY is missing, a few other species have abundance discrepancies of 1 individual
+table(sec1.alive$sp)
+sc_sec$ba <- pi*(sc_sec$dbh/ 1000 / 2)^2
+sum(sc_sec$ba, na.rm=T) / 40 * 25
+sum(sec1.alive$ba, na.rm=T) / 40 * 25 # discrepancy
+temp2 <- sec1.alive[FALSE,]
+for (i in 1:nrow(sc_sec)){
+  temp1 <- sec1.alive[match(sc_sec$tag[i], sec1.alive$tag),]
+  if (!is.na(temp1$dbh)){
+    if (sc_sec$dbh[i] == temp1$dbh) temp2 <- temp2
+    if (sc_sec$dbh[i] != temp1$dbh) temp2 <- rbind(temp2, temp1)
+  }
+}
+subset(sc_sec, tag=="K4-01570") # this is the problem, probably the problem disappeared as data from the later two censuses were used for checking
+sort(tapply(sc_sec$ba, sc_sec$sp, sum, na.rm=T)) # using her file I'm getting exactly the same results as I did with my copy, so I'm not sure how she got the results in the supplementary materials she published in the 2013 paper
+
 
 
 
@@ -102,10 +147,14 @@ adonis(sec.dist ~ census, permutations=100)
 
 
 # species abundances
-sort(table(sec1.alive$sp)); length(table(sec1.alive$sp))-1 # 126 species
-sort(table(sec2.alive$sp)); length(table(sec2.alive$sp))-1 # 140 species (+14)
-sort(table(sec3.alive$sp)); length(table(sec3.alive$sp))-1 # 151 species (+11)
+sort(table(sec1.alive$sp)); length(table(sec1.alive$sp))-2 # 125 species; minus AAAAAA and PANDDP
+sort(table(sec2.alive$sp)); length(table(sec2.alive$sp))-2 # 139 species (+14)
+sort(table(sec3.alive$sp)); length(table(sec3.alive$sp))-2 # 148 species (+11)
 # number of species has been increasing at each census
+# number of species in each species class
+table(as.data.frame(cbind(sp=unique(sec1.alive$sp), sp_class=as.character(sp_class[match(unique(sec1.alive$sp), sp_class$sp),"class"])))$sp_class)
+table(as.data.frame(cbind(sp=unique(sec2.alive$sp), sp_class=as.character(sp_class[match(unique(sec2.alive$sp), sp_class$sp),"class"])))$sp_class)
+table(as.data.frame(cbind(sp=unique(sec3.alive$sp), sp_class=as.character(sp_class[match(unique(sec3.alive$sp), sp_class$sp),"class"])))$sp_class)
 # mean species richness in each quadrat
 no.sp.quad1 <- numeric()
 for (i in 1:40){
@@ -113,6 +162,13 @@ for (i in 1:40){
   temp1 <- subset(sec1.alive, quadrat == quad & sp !="AAAAAA")
   no.sp.quad1[i] <- length(table(temp1$sp))
 }
+# poster figure: no. species in each species class in 2004, 2008 and 2012 
+sp_class_sp <- cbind( table(as.data.frame(cbind(sp=unique(sec1.alive$sp), sp_class=as.character(sp_class[match(unique(sec1.alive$sp), sp_class$sp),"class"])))$sp_class), table(as.data.frame(cbind(sp=unique(sec2.alive$sp), sp_class=as.character(sp_class[match(unique(sec2.alive$sp), sp_class$sp),"class"])))$sp_class), table(as.data.frame(cbind(sp=unique(sec3.alive$sp), sp_class=as.character(sp_class[match(unique(sec3.alive$sp), sp_class$sp),"class"])))$sp_class)  )
+dimnames(sp_class_sp)[[2]] <- c("2004", "2008", "2012")
+png("/Users/nkmstar/Dropbox/secplot_recovery/ESJ_2017_poster/sp_class_sp.png", width=650, height=600)
+par(mar=c(5.1, 4.5, 4.1, 2.1))
+barplot(sp_class_sp, ylim=c(0,200), ylab="No. species", main="No. species", legend=c("exotic species", "primary forest species", "primary + secondary forest species", "secondary forest species"), args.legend = list(x=3, y=200, bty="n", y.intersp = 0.8, cex=2), cex.axis = 2, cex.names = 2, cex.lab=2, cex.main=2)
+dev.off()
 # combine these into one table # refer to sp_abundance_table.xlsx
 
 
@@ -125,19 +181,75 @@ nrow(sec3.alive) # no major changes in stem density, which means that losses in 
 nrow(sec1.alive)/40*25
 nrow(sec2.alive)/40*25
 nrow(sec3.alive)/40*25
-# by size class
-table(sec1.alive$size)
-table(sec2.alive$size)
-table(sec3.alive$size)
+# 99% CI by bootstrapping quadrats
+ind1.quad <- tapply(sec1.alive$sp, sec1.alive$quadrat, length) * 25
+ind2.quad <- tapply(sec2.alive$sp, sec2.alive$quadrat, length) * 25
+ind3.quad <- tapply(sec3.alive$sp, sec3.alive$quadrat, length) * 25
+ind1.sim <- numeric()
+ind2.sim <- numeric()
+ind3.sim <- numeric()
+for (i in 1:1000){
+  temp <- sample(1:40, 40, replace=T)
+  ind1.sim[i] <- mean(ind1.quad[temp])
+  ind2.sim[i] <- mean(ind2.quad[temp])
+  ind3.sim[i] <- mean(ind3.quad[temp])
+}
+quantile(ind1.sim, c(0.005, 0.995)); mean(ind1.sim)
+quantile(ind2.sim, c(0.005, 0.995)); mean(ind2.sim)
+quantile(ind3.sim, c(0.005, 0.995)); mean(ind3.sim)
+# by size class per ha
+table(sec1.alive$size)/40*25
+table(sec2.alive$size)/40*25
+table(sec3.alive$size)/40*25
+# by species class per ha
+table(sec1.alive$sp_class)/40*25
+table(sec2.alive$sp_class)/40*25
+table(sec3.alive$sp_class)/40*25
+# poster figure: no. individuals in each species class in 2004, 2008 and 2012 
+sp_class_ind <- cbind(table(sec1.alive$sp_class)/40*25, table(sec2.alive$sp_class)/40*25, table(sec3.alive$sp_class)/40*25 )
+dimnames(sp_class_ind)[[2]] <- c("2004", "2008", "2012")
+png("/Users/nkmstar/Dropbox/secplot_recovery/ESJ_2017_poster/sp_class_ind.png", width=650, height=600)
+par(mar=c(5.1, 4.5, 4.1, 2.1))
+barplot(sp_class_ind, ylim=c(0,2500), ylab="No. individuals", main="No. individuals", legend=c("exotic species", "primary forest species", "primary + secondary forest species", "secondary forest species"), args.legend = list(x=3, y=2600, bty="n", y.intersp = 0.8, cex=2), cex.axis = 2, cex.names = 2, cex.lab=2, cex.main=2)
+dev.off()
+# stem density END
 
 # basal area per ha
 sum(sec1.alive$ba, na.rm=T) / 40 * 25
 sum(sec2.alive$ba, na.rm=T) / 40 * 25
 sum(sec3.alive$ba, na.rm=T) / 40 * 25
-# basal area by species
-sort(tapply(sec1.alive$ba, sec1.alive$sp, sum, na.rm=T))
-sort(tapply(sec2.alive$ba, sec2.alive$sp, sum, na.rm=T))
-sort(tapply(sec3.alive$ba, sec3.alive$sp, sum, na.rm=T))
+# 99% CI by bootstrapping quadrats
+ba1.quad <- tapply(sec1.alive$ba, sec1.alive$quadrat, sum, na.rm=T) * 25
+ba2.quad <- tapply(sec2.alive$ba, sec2.alive$quadrat, sum, na.rm=T) * 25
+ba3.quad <- tapply(sec3.alive$ba, sec3.alive$quadrat, sum, na.rm=T) * 25
+ba1.sim <- numeric()
+ba2.sim <- numeric()
+ba3.sim <- numeric()
+for (i in 1:1000){
+  temp <- sample(1:40, 40, replace=T)
+  ba1.sim[i] <- mean(ba1.quad[temp])
+  ba2.sim[i] <- mean(ba2.quad[temp])
+  ba3.sim[i] <- mean(ba3.quad[temp])
+}
+quantile(ba1.sim, c(0.005, 0.995)); mean(ba1.sim)
+quantile(ba2.sim, c(0.005, 0.995)); mean(ba2.sim)
+quantile(ba3.sim, c(0.005, 0.995)); mean(ba3.sim)
+# basal area by species per ha
+sort(tapply(sec1.alive$ba, sec1.alive$sp, sum, na.rm=T)) / 40 * 25
+sort(tapply(sec2.alive$ba, sec2.alive$sp, sum, na.rm=T)) / 40 * 25
+sort(tapply(sec3.alive$ba, sec3.alive$sp, sum, na.rm=T)) / 40 * 25
+# basal area by species class
+tapply(sec1.alive$ba, sec1.alive$sp_class, sum, na.rm=T) / 40 * 25
+tapply(sec2.alive$ba, sec2.alive$sp_class, sum, na.rm=T) / 40 * 25
+tapply(sec3.alive$ba, sec3.alive$sp_class, sum, na.rm=T) / 40 * 25
+# poster figure: basal area in each species class in 2004, 2008 and 2012 
+sp_class_ba <- cbind(tapply(sec1.alive$ba, sec1.alive$sp_class, sum, na.rm=T) / 40 * 25, tapply(sec2.alive$ba, sec2.alive$sp_class, sum, na.rm=T) / 40 * 25, tapply(sec3.alive$ba, sec3.alive$sp_class, sum, na.rm=T) / 40 * 25 )
+dimnames(sp_class_ba)[[2]] <- c("2004", "2008", "2012")
+png("/Users/nkmstar/Dropbox/secplot_recovery/ESJ_2017_poster/sp_class_ba.png", width=650, height=600)
+par(mar=c(5.1, 5.4, 4.1, 2.1))
+barplot(sp_class_ba, ylim=c(0,30), ylab=expression(paste("Basal area", (m^2/ha))), main="Basal area", legend=c("exotic species", "primary forest species", "primary + secondary forest species", "secondary forest species"), args.legend = list(x=3, y=30, bty="n", y.intersp = 0.8, cex=2), cex.axis = 2, cex.names = 2, cex.lab=2, cex.main=2)
+dev.off()
+# basal area END
 
 # mortality and recruitment
 mortality(sec1, sec2)
@@ -169,30 +281,49 @@ mortality(sec1, sec2, split1 = sec1$sp)$rate
 mortality(sec2, sec3, split1 = sec2$sp)$rate
 recruitment(sec1, sec2, split1 = sec1$sp)$rate
 recruitment(sec2, sec3, split1 = sec2$sp)$rate
+# by species class
+mortality(sec1, sec2, split1 = sec1$sp_class)$rate
+mortality(sec2, sec3, split1 = sec2$sp_class)$rate
+recruitment(sec1, sec2, split1 = sec1$sp_class)$rate
+recruitment(sec2, sec3, split1 = sec2$sp_class)$rate
+# mortality and recruitment END
 
-# density of trees >= 30 cm dbh in priplot
-source("/Users/KangMin/Dropbox/dendro Data analysis/R_scripts/load_main_census_data.R")
-source("/Users/nkmstar/Dropbox/dendro Data analysis/R_scripts/load_main_census_data.R")
-# use all size classes (because in load_main_census_data.R sizes were calculated for >=5 cm only)
-pri1$size <- cut(pri1$dbh, c(10, 20, 100, 10000), include.lowest=T, right=F)
-pri2$size <- cut(pri2$dbh, c(10, 20, 100, 10000), include.lowest=T, right=F)
-pri4$size <- cut(pri4$dbh, c(10, 20, 100, 10000), include.lowest=T, right=F)
-pri5$size <- cut(pri5$dbh, c(10, 20, 100, 10000), include.lowest=T, right=F)
-pri6$size <- cut(pri6$dbh, c(10, 20, 100, 10000), include.lowest=T, right=F)
-sec1$size <- cut(sec1$dbh, c(10, 20, 100, 10000), include.lowest=T, right=F)
-sec2$size <- cut(sec2$dbh, c(10, 20, 100, 10000), include.lowest=T, right=F)
-sec3$size <- cut(sec3$dbh, c(10, 20, 100, 10000), include.lowest=T, right=F)
-nrow(subset(pri4, dbh>=300))/2
-nrow(subset(pri5, dbh>=300))/2
-nrow(subset(pri6, dbh>=300))/2
-sort(table(sec1.alive$sp))
-sort(table(sec2.alive$sp))
-sort(table(sec3.alive$sp))
-# CAMPAU cluster
-campau.quad <- c("L1", "M1", "K4", "K5", "L3", "L4", "L5", "M3", "M4", "M5", "N3", "N4", "N5", "O2", "O3", "O4", "O5")
-nrow(subset(sec1, quadrat %in% campau.quad & dbh>=300))/17*25
-nrow(subset(sec2, quadrat %in% campau.quad & dbh>=300))/17*25
-nrow(subset(sec3, quadrat %in% campau.quad & dbh>=300))/17*25
+
+# dominant species
+splist <- read.delim("/Users/nkmstar/Dropbox/Front Royal 2013/Hokkaido/splist.txt")
+splist <- read.delim("/Users/KangMin/Dropbox/Front Royal 2013/Hokkaido/splist.txt")
+sort(tapply(sec1$ba, sec1$sp, sum, na.rm=T), decreasing=T)[1:10]
+top10_2004 <- names(sort(tapply(sec1$ba, sec1$sp, sum, na.rm=T), decreasing=T)[1:10])
+table(subset(sec1.alive, sp %in% top10_2004)$sp)
+tapply(subset(sec3, sp %in% top10_2004)$ba, subset(sec3, sp %in% top10_2004)$sp, sum, na.rm=T)
+table(subset(sec3.alive, sp %in% top10_2004)$sp)
+mortality(sec1, sec3, split1=sec1$sp)$rate[names(mortality(sec1, sec3, split1=sec1$sp)$rate) %in% top10_2004]
+recruitment(sec1, sec3, split1=sec1$sp)$rate[names(recruitment(sec1, sec3, split1=sec1$sp)$rate) %in% top10_2004]
+# plot of 4 dominant species abundance in census 1 and 3
+four_dom_sp <- rbind(subset(sec1.alive, sp %in% c("CAMPAU", "DILLSU", "ADINDU", "RHODCI")), subset(sec3.alive, sp %in% c("CAMPAU", "DILLSU", "ADINDU", "RHODCI")))
+four_dom_sp_mat1 <- tapply(four_dom_sp$size, list(four_dom_sp$size, four_dom_sp$CensusID, four_dom_sp$sp), length)
+adindu_mat <- matrix(four_dom_sp_mat1[1:6], nrow=3, byrow=F, dimnames=list(c("[10,50)", "[50,100)", "[100,1e+04]"), c("2004", "2012")))
+campau_mat <- matrix(four_dom_sp_mat1[7:12], nrow=3, byrow=F, dimnames=list(c("[10,50)", "[50,100)", "[100,1e+04]"), c("2004", "2012")))
+dillsu_mat <- matrix(four_dom_sp_mat1[13:18], nrow=3, byrow=F, dimnames=list(c("[10,50)", "[50,100)", "[100,1e+04]"), c("2004", "2012")))
+rhodci_mat <- matrix(four_dom_sp_mat1[19:24], nrow=3, byrow=F, dimnames=list(c("[10,50)", "[50,100)", "[100,1e+04]"), c("2004", "2012")))
+png("/Users/KangMin/Dropbox/secplot_recovery/figures/dom_sp_abun.png", width=835, height=560)
+par(mfrow=c(2,2))
+barplot(adindu_mat, beside=T, ylab="No. individuals", ylim=c(0,400), main=expression(italic("Adinandra dumosa")), cex.axis = 1.4, cex.names = 1.4, cex.lab=1.4, cex.main=1.6)
+barplot(campau_mat, beside=T, ylab="No. individuals", ylim=c(0,400), main=expression(italic("Campnosperma auriculata")), cex.axis = 1.4, cex.names = 1.4, cex.lab=1.4, cex.main=1.6)
+barplot(dillsu_mat, beside=T, ylab="No. individuals", ylim=c(0,400), main=expression(italic("Dillenia suffruticosa")), cex.axis = 1.4, cex.names = 1.4, cex.lab=1.4, cex.main=1.6)
+barplot(rhodci_mat, beside=T, ylab="No. individuals", ylim=c(0,400), main=expression(italic("Rhodamnia cinerea")), legend.text = c("1.0-4.9 cm", "5.0-9.9 cm", expression("">="10 cm")), args.legend = list(x=4, y=400, bty="n", y.intersp=1.4, cex=1.4), cex.axis = 1.4, cex.names = 1.4, cex.lab=1.4, cex.main=1.6)
+dev.off()
+# figure for poster 
+png("/Users/nkmstar/Dropbox/secplot_recovery/ESJ_2017_poster/dom_sp_abun.png", width=1000, height=700)
+par(mfrow=c(2,2), mar=c(5.1, 4.5, 4.1, 2.1))
+barplot(adindu_mat, beside=T, ylab="No. individuals", ylim=c(0,400), main=expression(italic("Adinandra dumosa")), cex.axis = 2, cex.names = 2, cex.lab=2, cex.main=2.4)
+barplot(campau_mat, beside=T, ylab="No. individuals", ylim=c(0,400), main=expression(italic("Campnosperma auriculata")), cex.axis = 2, cex.names = 2, cex.lab=2, cex.main=2.4)
+barplot(dillsu_mat, beside=T, ylab="No. individuals", ylim=c(0,400), main=expression(italic("Dillenia suffruticosa")), cex.axis = 2, cex.names = 2, cex.lab=2, cex.main=2.4)
+barplot(rhodci_mat, beside=T, ylab="No. individuals", ylim=c(0,400), main=expression(italic("Rhodamnia cinerea")), legend.text = c("1.0-4.9 cm", "5.0-9.9 cm", expression("">="10 cm")), args.legend = list(x=4, y=400, bty="n", y.intersp=2, cex=2), cex.axis = 2, cex.names = 2, cex.lab=2, cex.main=2.4)
+dev.off()
+# dominant species END
+
+
 
 # number of species in each size class
 table(subset(sec1, size=="[10,20)")$sp); length(table(subset(sec1, size=="[10,20)")$sp))
@@ -204,6 +335,23 @@ table(subset(sec2, size=="[100,1e+04]")$sp); length(table(subset(sec2, size=="[1
 table(subset(sec3, size=="[10,20)")$sp); length(table(subset(sec3, size=="[10,20)")$sp))
 table(subset(sec3, size=="[20,100)")$sp); length(table(subset(sec3, size=="[20,100)")$sp))-1
 table(subset(sec3, size=="[100,1e+04]")$sp); length(table(subset(sec3, size=="[100,1e+04]")$sp))-1
+
+
+
+
+
+
+# can two spatially random patterns be correlated? 
+library(spatstat)
+x <- runif(400, 0, 100)
+y <- runif(400, 0, 200)
+m <- sample(1:2, 400, replace=T)
+m <- factor(m, levels=c(1,2))
+Ran <- ppp(x, y, c(0,100), c(0,200), marks=m)
+plot(Ran)
+plot(Kcross(Ran))
+plot(Lcross(Ran))
+
 
 
 # plot spatial distributions of species in each census

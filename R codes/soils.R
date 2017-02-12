@@ -2,7 +2,7 @@
 soils <- read.delim("/Users/nkmstar/Dropbox/secplot_recovery/soil0-10.txt")
 
 rownames(soils) <- soils$quadrat
-# soils$for.type <- c(rep("pri", 26), rep("sec", 26))
+
 soils <- soils[,-c(1,2)]
 
 # remove 6 quadrats in primary forest
@@ -16,6 +16,29 @@ soils.mds <- isoMDS(soils.dist)
 plot(soils.mds$points, type = "n")
 text(soils.mds$points, labels = as.character(rownames(soils))) # no clear clusters, N2 is an outlier
 plot(hclust(soils.dist)) # quadrats all over the place, N2 is an outlier
+
+# t-test to test for differences between pri and sec plot
+soils$for.type <- c(rep("pri", 26), rep("sec", 20))
+t.test(pH ~ for.type, data=soils)
+t.test(Al ~ for.type, data=soils)
+t.test(Ca ~ for.type, data=soils)
+t.test(Fe ~ for.type, data=soils)
+t.test(K ~ for.type, data=soils)
+t.test(Mg ~ for.type, data=soils)
+t.test(Mn ~ for.type, data=soils)
+t.test(Na ~ for.type, data=soils)
+t.test(CEC ~ for.type, data=soils)
+t.test(BS ~ for.type, data=soils) # significant
+t.test(pH.water ~ for.type, data=soils) # significant
+t.test(pH.CaCl2 ~ for.type, data=soils)
+t.test(resin.P ~ for.type, data=soils)
+t.test(total.C ~ for.type, data=soils) # significant
+t.test(total.N ~ for.type, data=soils)
+t.test(C.N ~ for.type, data=soils) # significant
+t.test(coarse.fragments ~ for.type, data=soils) # significant
+t.test(bulk.density ~ for.type, data=soils)
+t.test(fine.roots ~ for.type, data=soils) # significant
+
 
 # mean of pri and sec plots
 soils$forest <- c(rep("pri", 26), rep("sec", 20))
